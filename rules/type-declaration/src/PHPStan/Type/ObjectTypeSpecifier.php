@@ -10,6 +10,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\Stmt\UseUse;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
@@ -21,6 +22,16 @@ use Rector\StaticTypeMapper\ValueObject\Type\ShortenedObjectType;
 
 final class ObjectTypeSpecifier
 {
+    /**
+     * @var ReflectionProvider
+     */
+    private $reflectionProvider;
+
+    public function __construct(ReflectionProvider $reflectionProvider)
+    {
+        $this->reflectionProvider = $reflectionProvider;
+    }
+
     /**
      * @return AliasedObjectType|FullyQualifiedObjectType|ObjectType|MixedType
      */
@@ -49,7 +60,8 @@ final class ObjectTypeSpecifier
         }
 
         $className = ltrim($objectType->getClassName(), '\\');
-        if (ClassExistenceStaticHelper::doesClassLikeExist($className)) {
+
+        if ($this->reflectionProvider->hasClass($className)) {
             return new FullyQualifiedObjectType($className);
         }
 
@@ -160,7 +172,7 @@ final class ObjectTypeSpecifier
 
         $namespacedObject = $namespaceName . '\\' . ltrim($objectType->getClassName(), '\\');
 
-        if (ClassExistenceStaticHelper::doesClassLikeExist($namespacedObject)) {
+        if ($this->reflectionProvider->hasClass($namespacedObject)) {
             return new FullyQualifiedObjectType($namespacedObject);
         }
 
@@ -177,7 +189,7 @@ final class ObjectTypeSpecifier
         $classNameWithoutLastUsePart = Strings::after($objectType->getClassName(), '\\', 1);
 
         $connectedClassName = $useUse->name->toString() . '\\' . $classNameWithoutLastUsePart;
-        if (! ClassExistenceStaticHelper::doesClassLikeExist($connectedClassName)) {
+        if (!$this->reflectionProvider->hasClass($connectedClassName)) {
             return null;
         }
 
@@ -197,7 +209,7 @@ final class ObjectTypeSpecifier
             return null;
         }
 
-        if (! ClassExistenceStaticHelper::doesClassLikeExist($useUse->name->toString())) {
+        if (! $this->reflectionProvider->hasClass($useUse->name->toString())) {
             return null;
         }
 

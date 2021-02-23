@@ -14,6 +14,7 @@ use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\Stmt\UseUse;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
 use Rector\BetterPhpDocParser\Contract\PhpDocNode\TypeAwareTagValueNodeInterface;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
@@ -70,6 +71,11 @@ final class ClassRenamer
      */
     private $docBlockClassRenamer;
 
+    /**
+     * @var ReflectionProvider
+     */
+    private $reflectionProvider;
+
     public function __construct(
         BetterNodeFinder $betterNodeFinder,
         SimpleCallableNodeTraverser $simpleCallableNodeTraverser,
@@ -77,7 +83,8 @@ final class ClassRenamer
         NodeNameResolver $nodeNameResolver,
         PhpDocClassRenamer $phpDocClassRenamer,
         PhpDocInfoFactory $phpDocInfoFactory,
-        DocBlockClassRenamer $docBlockClassRenamer
+        DocBlockClassRenamer $docBlockClassRenamer,
+        ReflectionProvider $reflectionProvider
     ) {
         $this->nodeNameResolver = $nodeNameResolver;
         $this->simpleCallableNodeTraverser = $simpleCallableNodeTraverser;
@@ -86,6 +93,7 @@ final class ClassRenamer
         $this->betterNodeFinder = $betterNodeFinder;
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->docBlockClassRenamer = $docBlockClassRenamer;
+        $this->reflectionProvider = $reflectionProvider;
     }
 
     /**
@@ -180,16 +188,16 @@ final class ClassRenamer
         }
 
         $currentName = $this->nodeNameResolver->getName($classLike);
-        $newClassFqn = $oldToNewClasses[$currentName];
+        $newClassFullyQualified = $oldToNewClasses[$currentName];
 
-        if (ClassExistenceStaticHelper::doesClassLikeExist($newClassFqn)) {
+        if ($this->reflectionProvider->hasClass($newClassFullyQualified)) {
             return null;
         }
 
-        $newNamespace = $this->classNaming->getNamespace($newClassFqn);
+        $newNamespace = $this->classNaming->getNamespace($newClassFullyQualified);
         // Renaming to class without namespace (example MyNamespace\DateTime -> DateTimeImmutable)
         if (! $newNamespace) {
-            $classLike->name = new Identifier($newClassFqn);
+            $classLike->name = new Identifier($newClassFullyQualified);
 
             return $classLike;
         }
@@ -362,7 +370,7 @@ final class ClassRenamer
             return false;
         }
 
-        if ($class->extends === $name && class_exists($newName)) {
+        if ($class->extends === $name && $this->reflectionProvider->hasClass($newName)) {
             // is final class?
             $reflectionClass = new ReflectionClass($newName);
             if ($reflectionClass->isFinal()) {

@@ -6,6 +6,7 @@ namespace Rector\StaticTypeMapper\PhpParser;
 
 use PhpParser\Node;
 use PhpParser\Node\Name;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\FloatType;
@@ -29,9 +30,15 @@ final class NameNodeMapper implements PhpParserNodeMapperInterface
      */
     private $renamedClassesCollector;
 
-    public function __construct(RenamedClassesCollector $renamedClassesCollector)
+    /**
+     * @var ReflectionProvider
+     */
+    private $reflectionProvider;
+
+    public function __construct(RenamedClassesCollector $renamedClassesCollector, ReflectionProvider $reflectionProvider)
     {
         $this->renamedClassesCollector = $renamedClassesCollector;
+        $this->reflectionProvider = $reflectionProvider;
     }
 
     public function getNodeType(): string
@@ -58,7 +65,7 @@ final class NameNodeMapper implements PhpParserNodeMapperInterface
 
     private function isExistingClass(string $name): bool
     {
-        if (ClassExistenceStaticHelper::doesClassLikeExist($name)) {
+        if ($this->reflectionProvider->hasClass($name)) {
             return true;
         }
 
