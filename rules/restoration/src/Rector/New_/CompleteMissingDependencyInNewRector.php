@@ -156,8 +156,8 @@ CODE_SAMPLE
             return null;
         }
 
-        $reflectionClass = $this->reflectionProvider->getClass($className);
-        return $reflectionClass->getConstructor();
+        $classReflection = $this->reflectionProvider->getClass($className);
+        return $classReflection->getConstructor();
     }
 
     private function resolveClassToInstantiateByParameterReflection(ReflectionParameter $reflectionParameter): ?string

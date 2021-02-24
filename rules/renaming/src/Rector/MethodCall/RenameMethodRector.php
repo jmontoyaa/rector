@@ -120,6 +120,9 @@ CODE_SAMPLE
         return null;
     }
 
+    /**
+     * @param array<string, MethodCallRenameInterface[]> $configuration
+     */
     public function configure(array $configuration): void
     {
         $methodCallRenames = $configuration[self::METHOD_CALL_RENAMES] ?? [];

@@ -17,7 +17,6 @@ use Rector\BetterPhpDocParser\ValueObject\PhpDocNode\Doctrine\Property_\IdTagVal
 use Rector\Core\Exception\ShouldNotHappenException;
 use Rector\NodeCollector\NodeCollector\NodeRepository;
 use Rector\NodeTypeResolver\Node\AttributeKey;
-use ReflectionClass;
 
 final class DoctrineDocBlockResolver
 {
@@ -123,11 +122,16 @@ final class DoctrineDocBlockResolver
             return $this->isDoctrineEntityClass($classNode);
         }
 
-        $reflectionClass = new ReflectionClass($class);
+        $classReflection = $this->reflectionProvider->getClass($class);
+        $resolvedPhpDoc = $classReflection->getResolvedPhpDoc();
+        if ($resolvedPhpDoc === null) {
+            return false;
+        }
 
         // dummy check of 3rd party code without running it
-        $docCommentContent = (string) $reflectionClass->getDocComment();
-
-        return (bool) Strings::match($docCommentContent, self::ORM_ENTITY_EMBEDDABLE_SHORT_ANNOTATION_REGEX);
+        return (bool) Strings::match(
+            $resolvedPhpDoc->getPhpDocString(),
+            self::ORM_ENTITY_EMBEDDABLE_SHORT_ANNOTATION_REGEX
+        );
     }
 }

@@ -15,10 +15,10 @@ use PhpParser\Node\Param;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
+use PHPStan\Reflection\ReflectionProvider;
 use Rector\Core\ValueObject\MethodName;
 use Rector\Symfony3\NodeFactory\BuilderFormNodeFactory;
 use Rector\Symfony3\NodeFactory\ConfigureOptionsNodeFactory;
-use ReflectionClass;
 use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -55,12 +55,19 @@ final class FormTypeInstanceToClassConstRector extends AbstractFormAddRector
      */
     private $configureOptionsNodeFactory;
 
+    /**
+     * @var ReflectionProvider
+     */
+    private $reflectionProvider;
+
     public function __construct(
         BuilderFormNodeFactory $builderFormNodeFactory,
-        ConfigureOptionsNodeFactory $configureOptionsNodeFactory
+        ConfigureOptionsNodeFactory $configureOptionsNodeFactory,
+        ReflectionProvider $reflectionProvider
     ) {
         $this->builderFormNodeFactory = $builderFormNodeFactory;
         $this->configureOptionsNodeFactory = $configureOptionsNodeFactory;
+        $this->reflectionProvider = $reflectionProvider;
     }
 
     public function getRuleDefinition(): RuleDefinition
@@ -247,16 +254,21 @@ CODE_SAMPLE
      */
     private function resolveNamesToArgs(string $className, array $argNodes): array
     {
-        $reflectionClass = new ReflectionClass($className);
-        $constructorReflectionMethod = $reflectionClass->getConstructor();
+        if (! $this->reflectionProvider->hasClass($className)) {
+            return [];
+        }
 
+        $classReflection = $this->reflectionProvider->getClass($className);
+        $nativeClassReflection = $classReflection->getNativeReflection();
+
+        $constructorReflectionMethod = $nativeClassReflection->getConstructor();
         if (! $constructorReflectionMethod instanceof ReflectionMethod) {
             return [];
         }
 
         $namesToArgs = [];
-        foreach ($constructorReflectionMethod->getParameters() as $reflectionParameter) {
-            $namesToArgs[$reflectionParameter->getName()] = $argNodes[$reflectionParameter->getPosition()];
+        foreach ($constructorReflectionMethod->getParameters() as $position => $reflectionParameter) {
+            $namesToArgs[$reflectionParameter->getName()] = $argNodes[$position];
         }
 
         return $namesToArgs;

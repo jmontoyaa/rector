@@ -297,6 +297,7 @@ abstract class AbstractTemporaryRector extends NodeVisitorAbstract implements Ph
 
         $originalNode = $node->getAttribute(AttributeKey::ORIGINAL_NODE) ?? clone $node;
         $originalNodeWithAttributes = clone $node;
+
         $node = $this->refactor($node);
 
         // nothing to change → continue

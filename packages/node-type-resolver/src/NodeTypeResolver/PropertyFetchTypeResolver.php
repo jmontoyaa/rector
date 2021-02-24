@@ -20,7 +20,6 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeWithClassName;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\NodeCollector\NodeCollector\NodeRepository;
@@ -104,7 +103,7 @@ final class PropertyFetchTypeResolver implements NodeTypeResolverInterface
     }
 
     /**
-     * @return string[]
+     * @return array<class-string<Node>>
      */
     public function getNodeClasses(): array
     {
@@ -153,12 +152,12 @@ final class PropertyFetchTypeResolver implements NodeTypeResolverInterface
     private function getVendorPropertyFetchType(PropertyFetch $propertyFetch): Type
     {
         $varObjectType = $this->nodeTypeResolver->resolve($propertyFetch->var);
-        if (! $varObjectType instanceof TypeWithClassName) {
+        if (! $varObjectType instanceof ObjectType) {
             return new MixedType();
         }
 
-        $class = $this->nodeRepository->findClass($varObjectType->getClassName());
-        if ($class !== null) {
+        $classReflection = $varObjectType->getClassReflection();
+        if ($classReflection === null) {
             return new MixedType();
         }
 
@@ -168,7 +167,7 @@ final class PropertyFetchTypeResolver implements NodeTypeResolverInterface
             return new MixedType();
         }
 
-        if (! property_exists($varObjectType->getClassName(), $propertyName)) {
+        if (! $classReflection->hasProperty($propertyName)) {
             return new MixedType();
         }
 

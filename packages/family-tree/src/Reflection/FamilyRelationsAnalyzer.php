@@ -4,27 +4,28 @@ declare(strict_types=1);
 
 namespace Rector\FamilyTree\Reflection;
 
+use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ReflectionProvider;
+
 final class FamilyRelationsAnalyzer
 {
     /**
-     * @return class-string[]
+     * @var ReflectionProvider
      */
-    public function getChildrenOfClass(string $parentClass): array
+    private $reflectionProvider;
+
+    public function __construct(ReflectionProvider $reflectionProvider)
     {
-        $childrenClasses = [];
-        foreach (get_declared_classes() as $declaredClass) {
-            if ($declaredClass === $parentClass) {
-                continue;
-            }
+        $this->reflectionProvider = $reflectionProvider;
+    }
 
-            if (! is_a($declaredClass, $parentClass, true)) {
-                continue;
-            }
-
-            $childrenClasses[] = $declaredClass;
-        }
-
-        return $childrenClasses;
+    /**
+     * @return ClassReflection[]
+     */
+    public function getChildrenOfClass(string $className): array
+    {
+        $classReflection = $this->reflectionProvider->getClass($className);
+        return $classReflection->getAncestors();
     }
 
     public function isParentClass(string $class): bool

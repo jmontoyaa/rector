@@ -11,7 +11,9 @@ use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\TypeWithClassName;
 use Rector\BetterPhpDocParser\ValueObject\PhpDocNode\Symfony\SymfonyRouteTagValueNode;
 use Rector\BetterPhpDocParser\ValueObjectFactory\PhpDocNode\Symfony\SymfonyRouteTagValueNodeFactory;
 use Rector\Core\Rector\AbstractRector;
@@ -20,7 +22,7 @@ use Rector\NetteToSymfony\Route\RouteInfoFactory;
 use Rector\NetteToSymfony\Routing\ExplicitRouteAnnotationDecorator;
 use Rector\NetteToSymfony\ValueObject\RouteInfo;
 use Rector\TypeDeclaration\TypeInferer\ReturnTypeInferer;
-use ReflectionMethod;
+use Symplify\PackageBuilder\Reflection\PrivatesCaller;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
@@ -66,16 +68,30 @@ final class RouterListToControllerAnnotationsRector extends AbstractRector
      */
     private $symfonyRouteTagValueNodeFactory;
 
+    /**
+     * @var ReflectionProvider
+     */
+    private $reflectionProvider;
+
+    /**
+     * @var PrivatesCaller
+     */
+    private $privatesCaller;
+
     public function __construct(
         ExplicitRouteAnnotationDecorator $explicitRouteAnnotationDecorator,
         ReturnTypeInferer $returnTypeInferer,
         RouteInfoFactory $routeInfoFactory,
-        SymfonyRouteTagValueNodeFactory $symfonyRouteTagValueNodeFactory
+        SymfonyRouteTagValueNodeFactory $symfonyRouteTagValueNodeFactory,
+        ReflectionProvider $reflectionProvider,
+        PrivatesCaller $privatesCaller
     ) {
         $this->routeInfoFactory = $routeInfoFactory;
         $this->returnTypeInferer = $returnTypeInferer;
         $this->explicitRouteAnnotationDecorator = $explicitRouteAnnotationDecorator;
         $this->symfonyRouteTagValueNodeFactory = $symfonyRouteTagValueNodeFactory;
+        $this->reflectionProvider = $reflectionProvider;
+        $this->privatesCaller = $privatesCaller;
     }
 
     public function getRuleDefinition(): RuleDefinition
@@ -297,17 +313,25 @@ CODE_SAMPLE
             return false;
         }
 
-        if (! method_exists($className, $methodName)) {
+        if (! $this->reflectionProvider->hasClass($className)) {
             return false;
         }
 
-        $reflectionMethod = new ReflectionMethod($className, $methodName);
-        if ($reflectionMethod->getReturnType() === null) {
+        $classReflection = $this->reflectionProvider->getClass($className);
+        if (! $classReflection->hasMethod($methodName)) {
             return false;
         }
 
-        $staticCallReturnType = (string) $reflectionMethod->getReturnType();
-        return is_a($staticCallReturnType, 'Nette\Application\IRouter', true);
+        $reflectionMethod = $classReflection->getNativeMethod($methodName);
+
+        /** @var \PHPStan\Type\Type $returnType */
+        $returnType = $this->privatesCaller->callPrivateMethod($reflectionMethod, 'getReturnType', []);
+
+        if ($returnType instanceof TypeWithClassName) {
+            return is_a($returnType->getClassName(), 'Nette\Application\IRouter', true);
+        }
+
+        return false;
     }
 
     private function shouldSkipClassMethod(ClassMethod $classMethod): bool

@@ -20,7 +20,7 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 final class NameTypeResolver implements NodeTypeResolverInterface
 {
     /**
-     * @return string[]
+     * @return array<class-string<Node>>
      */
     public function getNodeClasses(): array
     {

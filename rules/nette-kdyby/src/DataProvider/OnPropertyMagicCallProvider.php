@@ -6,6 +6,8 @@ namespace Rector\NetteKdyby\DataProvider;
 
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
+use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeCollector\NodeCollector\NodeRepository;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
@@ -36,10 +38,19 @@ final class OnPropertyMagicCallProvider
      */
     private $nodeNameResolver;
 
-    public function __construct(NodeNameResolver $nodeNameResolver, NodeRepository $nodeRepository)
-    {
+    /**
+     * @var ReflectionProvider
+     */
+    private $reflectionProvider;
+
+    public function __construct(
+        NodeNameResolver $nodeNameResolver,
+        NodeRepository $nodeRepository,
+        ReflectionProvider $reflectionProvider
+    ) {
         $this->nodeRepository = $nodeRepository;
         $this->nodeNameResolver = $nodeNameResolver;
+        $this->reflectionProvider = $reflectionProvider;
     }
 
     /**
@@ -52,7 +63,8 @@ final class OnPropertyMagicCallProvider
         }
 
         foreach ($this->nodeRepository->getMethodsCalls() as $methodCall) {
-            if (! $this->isLocalOnPropertyCall($methodCall)) {
+            $scope = $methodCall->getAttribute(AttributeKey::SCOPE);
+            if (! $this->isLocalOnPropertyCall($methodCall, $scope)) {
                 continue;
             }
 
@@ -66,7 +78,7 @@ final class OnPropertyMagicCallProvider
      * Detects method call on, e.g:
      * public $onSomeProperty;
      */
-    private function isLocalOnPropertyCall(MethodCall $methodCall): bool
+    private function isLocalOnPropertyCall(MethodCall $methodCall, Scope $scope): bool
     {
         if ($methodCall->var instanceof StaticCall) {
             return false;
@@ -89,19 +101,20 @@ final class OnPropertyMagicCallProvider
             return false;
         }
 
-        $className = $methodCall->getAttribute(AttributeKey::CLASS_NAME);
-        if ($className === null) {
+        $classReflection = $scope->getClassReflection();
+        if ($classReflection === null) {
             return false;
         }
+
         // control event, inner only
-        if (is_a($className, self::CONTROL_CLASS, true)) {
+        if ($classReflection->isSubclassOf(self::CONTROL_CLASS)) {
             return false;
         }
 
-        if (method_exists($className, $methodName)) {
+        if ($classReflection->hasMethod($methodName)) {
             return false;
         }
 
-        return property_exists($className, $methodName);
+        return $classReflection->hasProperty($methodName);
     }
 }

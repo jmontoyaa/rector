@@ -144,7 +144,9 @@ final class VariableNaming
             return $this->resolveFromPropertyFetch($node);
         }
 
-        if ($this->isCall($node)) {
+        if ($node !== null && StaticInstanceOf::isOneOf(
+            $node,
+            [MethodCall::class, NullsafeMethodCall::class, StaticCall::class])) {
             return $this->resolveFromMethodCall($node);
         }
 
@@ -240,15 +242,6 @@ final class VariableNaming
         }
 
         return $varName . ucfirst($propertyName);
-    }
-
-    private function isCall(?Node $node): bool
-    {
-        if (! $node instanceof Node) {
-            return false;
-        }
-
-        return StaticInstanceOf::isOneOf($node, [MethodCall::class, NullsafeMethodCall::class, StaticCall::class]);
     }
 
     private function resolveFromMethodCall(?Node $node): ?string

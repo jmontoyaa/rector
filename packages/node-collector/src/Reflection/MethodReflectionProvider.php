@@ -21,7 +21,6 @@ use Rector\Core\ValueObject\MethodName;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\NodeTypeResolver;
-use ReflectionMethod;
 
 final class MethodReflectionProvider
 {
@@ -70,7 +69,7 @@ final class MethodReflectionProvider
         return $parameterTypes;
     }
 
-    public function provideByMethodCall(MethodCall $methodCall): ?ReflectionMethod
+    public function provideByMethodCall(MethodCall $methodCall): ?MethodReflection
     {
         $className = $methodCall->getAttribute(AttributeKey::CLASS_NAME);
         if (! is_string($className)) {
@@ -82,11 +81,16 @@ final class MethodReflectionProvider
             return null;
         }
 
-        if (! method_exists($className, $methodName)) {
+        if (! $this->reflectionProvider->hasClass($className)) {
             return null;
         }
 
-        return new ReflectionMethod($className, $methodName);
+        $classReflection = $this->reflectionProvider->getClass($className);
+        if (! $classReflection->hasMethod($methodName)) {
+            return null;
+        }
+
+        return $classReflection->getNativeMethod($methodName);
     }
 
     public function provideByClassAndMethodName(string $class, string $method, Scope $scope): ?MethodReflection
@@ -174,16 +178,24 @@ final class MethodReflectionProvider
     public function provideParameterNamesByNew(New_ $new): array
     {
         $objectType = $this->nodeTypeResolver->resolve($new->class);
+
         $classes = TypeUtils::getDirectClassNames($objectType);
 
         $parameterNames = [];
 
         foreach ($classes as $class) {
-            if (! method_exists($class, MethodName::CONSTRUCT)) {
+            if (! $this->reflectionProvider->hasClass($class)) {
                 continue;
             }
 
-            $methodReflection = new ReflectionMethod($class, MethodName::CONSTRUCT);
+            $classReflection = $this->reflectionProvider->getClass($class);
+            if (! $classReflection->hasMethod(MethodName::CONSTRUCT)) {
+                continue;
+            }
+
+            $nativeClassReflection = $classReflection->getNativeReflection();
+            $methodReflection = $nativeClassReflection->getMethod(MethodName::CONSTRUCT);
+
             foreach ($methodReflection->getParameters() as $reflectionParameter) {
                 $parameterNames[] = $reflectionParameter->name;
             }

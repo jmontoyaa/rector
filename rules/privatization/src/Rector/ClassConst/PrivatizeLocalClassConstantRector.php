@@ -14,7 +14,6 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Privatization\NodeFinder\ParentClassConstantNodeFinder;
 use Rector\Privatization\Reflection\ParentConstantReflectionResolver;
 use Rector\Privatization\ValueObject\ConstantVisibility;
-use ReflectionClassConstant;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
@@ -177,7 +176,7 @@ CODE_SAMPLE
         }
 
         $parentClassConstantReflection = $this->parentConstantReflectionResolver->resolve($class, $constant);
-        if (! $parentClassConstantReflection instanceof ReflectionClassConstant) {
+        if ($parentClassConstantReflection === null) {
             return null;
         }
 

@@ -663,7 +663,16 @@ final class NodeRepository
             return;
         }
 
-        if (! $arrayCallable->isExistingMethod()) {
+        if (! $this->reflectionProvider->hasClass($arrayCallable->getClass())) {
+            return;
+        }
+
+        $classReflection = $this->reflectionProvider->getClass($arrayCallable->getClass());
+        if ($classReflection->isClass()) {
+            return;
+        }
+
+        if (! $classReflection->hasMethod($arrayCallable->getMethod())) {
             return;
         }
 
