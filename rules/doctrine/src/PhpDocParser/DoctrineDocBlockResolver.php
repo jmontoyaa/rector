@@ -8,6 +8,7 @@ use Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Property;
+use PHPStan\PhpDoc\ResolvedPhpDocBlock;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\BetterPhpDocParser\Contract\Doctrine\DoctrineRelationTagValueNodeInterface;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
@@ -123,14 +124,14 @@ final class DoctrineDocBlockResolver
         }
 
         $classReflection = $this->reflectionProvider->getClass($class);
-        $resolvedPhpDoc = $classReflection->getResolvedPhpDoc();
-        if ($resolvedPhpDoc === null) {
+        $resolvedPhpDocBlock = $classReflection->getResolvedPhpDoc();
+        if (! $resolvedPhpDocBlock instanceof ResolvedPhpDocBlock) {
             return false;
         }
 
         // dummy check of 3rd party code without running it
         return (bool) Strings::match(
-            $resolvedPhpDoc->getPhpDocString(),
+            $resolvedPhpDocBlock->getPhpDocString(),
             self::ORM_ENTITY_EMBEDDABLE_SHORT_ANNOTATION_REGEX
         );
     }

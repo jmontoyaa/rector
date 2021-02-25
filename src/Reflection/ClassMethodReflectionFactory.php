@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Rector\Core\Reflection;
 
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\Php\PhpMethodReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\IntersectionType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use Rector\StaticTypeMapper\ValueObject\Type\ShortenedObjectType;
+use ReflectionMethod;
 
 final class ClassMethodReflectionFactory
 {
@@ -25,7 +24,7 @@ final class ClassMethodReflectionFactory
         $this->reflectionProvider = $reflectionProvider;
     }
 
-    public function createFromPHPStanTypeAndMethodName(Type $type, string $methodName): ?MethodReflection
+    public function createFromPHPStanTypeAndMethodName(Type $type, string $methodName): ?ReflectionMethod
     {
         if ($type instanceof ShortenedObjectType) {
             return $this->createReflectionMethodIfExists($type->getFullyQualifiedName(), $methodName);
@@ -42,7 +41,7 @@ final class ClassMethodReflectionFactory
                 }
 
                 $methodReflection = $this->createFromPHPStanTypeAndMethodName($unionedType, $methodName);
-                if (! $methodReflection instanceof PhpMethodReflection) {
+                if (! $methodReflection instanceof ReflectionMethod) {
                     continue;
                 }
 
@@ -53,13 +52,18 @@ final class ClassMethodReflectionFactory
         return null;
     }
 
-    public function createReflectionMethodIfExists(string $class, string $method): ?MethodReflection
+    public function createReflectionMethodIfExists(string $class, string $method): ?ReflectionMethod
     {
         if (! $this->reflectionProvider->hasClass($class)) {
             return null;
         }
 
         $classReflection = $this->reflectionProvider->getClass($class);
-        return $classReflection->getNativeMethod($method);
+        $nativeClassReflection = $classReflection->getNativeReflection();
+        if (! $nativeClassReflection->hasMethod($method)) {
+            return null;
+        }
+
+        return $nativeClassReflection->getMethod($method);
     }
 }

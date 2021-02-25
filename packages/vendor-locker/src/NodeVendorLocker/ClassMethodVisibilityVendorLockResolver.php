@@ -31,7 +31,7 @@ final class ClassMethodVisibilityVendorLockResolver extends AbstractNodeVendorLo
         $scope = $classMethod->getAttribute(AttributeKey::SCOPE);
 
         $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return false;
         }
 
@@ -55,13 +55,17 @@ final class ClassMethodVisibilityVendorLockResolver extends AbstractNodeVendorLo
         $scope = $classMethod->getAttribute(AttributeKey::SCOPE);
 
         $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return false;
         }
 
         $methodName = $this->nodeNameResolver->getName($classMethod);
 
         foreach ($classReflection->getAncestors() as $childClassReflection) {
+            if ($childClassReflection === $classReflection) {
+                continue;
+            }
+
             if ($childClassReflection->hasMethod($methodName)) {
                 return true;
             }

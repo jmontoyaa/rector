@@ -6,22 +6,12 @@ namespace Rector\VendorLocker\NodeVendorLocker;
 
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\Php\PhpMethodReflection;
-use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 
 final class ClassMethodVendorLockResolver extends AbstractNodeVendorLockResolver
 {
-    /**
-     * @var ReflectionProvider
-     */
-    private $reflectionProvider;
-
-    public function __construct(ReflectionProvider $reflectionProvider)
-    {
-        $this->reflectionProvider = $reflectionProvider;
-    }
-
     /**
      * Checks for:
      * - interface required methods
@@ -36,8 +26,9 @@ final class ClassMethodVendorLockResolver extends AbstractNodeVendorLockResolver
 
         /** @var Scope $scope */
         $scope = $classMethod->getAttribute(AttributeKey::SCOPE);
+
         $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return false;
         }
 
@@ -45,21 +36,12 @@ final class ClassMethodVendorLockResolver extends AbstractNodeVendorLockResolver
             return true;
         }
 
-        if ($classReflection->getParents() === []) {
-            return false;
-        }
-
-        /** @var string $className */
-        $className = $classMethod->getAttribute(AttributeKey::CLASS_NAME);
-
-        $classReflection = $this->reflectionProvider->getClass($className);
-
         foreach ($classReflection->getParents() as $parentClassReflection) {
             if (! $parentClassReflection->hasMethod($classMethodName)) {
                 continue;
             }
 
-            $methodReflection = $classReflection->getNativeMethod($classMethodName);
+            $methodReflection = $parentClassReflection->getNativeMethod($classMethodName);
             if (! $methodReflection instanceof PhpMethodReflection) {
                 continue;
             }

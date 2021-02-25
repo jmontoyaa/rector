@@ -206,3 +206,5 @@ services:
                 - 'property_exists'
                 - class_parents
                 - class_implements
+                - get_parent_class
+                - get_declared_classes

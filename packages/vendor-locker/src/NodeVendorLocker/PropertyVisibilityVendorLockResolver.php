@@ -22,7 +22,7 @@ final class PropertyVisibilityVendorLockResolver extends AbstractNodeVendorLockR
     public function isParentLockedProperty(Property $property): bool
     {
         $classReflection = $this->resolveClassReflection($property);
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return false;
         }
 
@@ -40,12 +40,17 @@ final class PropertyVisibilityVendorLockResolver extends AbstractNodeVendorLockR
     public function isChildLockedProperty(Property $property): bool
     {
         $classReflection = $this->resolveClassReflection($property);
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return false;
         }
 
         $propertyName = $this->nodeNameResolver->getName($property);
+
         foreach ($classReflection->getAncestors() as $childClassReflection) {
+            if ($childClassReflection === $classReflection) {
+                continue;
+            }
+
             if ($childClassReflection->hasProperty($propertyName)) {
                 return true;
             }

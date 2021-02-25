@@ -8,7 +8,6 @@ use PhpParser\Node;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
-use PHPStan\Reflection\ReflectionProvider;
 use Rector\Core\Rector\AbstractRector;
 use Rector\FamilyTree\Reflection\FamilyRelationsAnalyzer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
@@ -31,19 +30,12 @@ final class MakeOnlyUsedByChildrenProtectedRector extends AbstractRector
      */
     private $familyRelationsAnalyzer;
 
-    /**
-     * @var ReflectionProvider
-     */
-    private $reflectionProvider;
-
     public function __construct(
         ClassMethodExternalCallNodeAnalyzer $classMethodExternalCallNodeAnalyzer,
-        FamilyRelationsAnalyzer $familyRelationsAnalyzer,
-        ReflectionProvider $reflectionProvider
+        FamilyRelationsAnalyzer $familyRelationsAnalyzer
     ) {
         $this->classMethodExternalCallNodeAnalyzer = $classMethodExternalCallNodeAnalyzer;
         $this->familyRelationsAnalyzer = $familyRelationsAnalyzer;
-        $this->reflectionProvider = $reflectionProvider;
     }
 
     public function getRuleDefinition(): RuleDefinition

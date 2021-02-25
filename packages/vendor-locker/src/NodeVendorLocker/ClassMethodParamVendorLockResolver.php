@@ -7,25 +7,16 @@ namespace Rector\VendorLocker\NodeVendorLocker;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 
 final class ClassMethodParamVendorLockResolver extends AbstractNodeVendorLockResolver
 {
-    /**
-     * @var ReflectionProvider
-     */
-    private $reflectionProvider;
-
-    public function __construct(ReflectionProvider $reflectionProvider)
-    {
-        $this->reflectionProvider = $reflectionProvider;
-    }
-
     public function isVendorLocked(ClassMethod $classMethod, int $paramPosition): bool
     {
-        /** @var Scope $scope */
         $scope = $classMethod->getAttribute(AttributeKey::SCOPE);
+        if (! $scope instanceof Scope) {
+            return false;
+        }
 
         $classReflection = $scope->getClassReflection();
         if (! $classReflection instanceof ClassReflection) {
@@ -36,11 +27,7 @@ final class ClassMethodParamVendorLockResolver extends AbstractNodeVendorLockRes
             return false;
         }
 
-        /** @var string $methodName */
         $methodName = $this->nodeNameResolver->getName($classMethod);
-
-//        /** @var string|null $parentClassName */
-//        $parentClassName = $classMethod->getAttribute(AttributeKey::PARENT_CLASS_NAME);
 
         if ($classReflection->getParentClass() !== false) {
             $vendorLock = $this->isParentClassVendorLocking(

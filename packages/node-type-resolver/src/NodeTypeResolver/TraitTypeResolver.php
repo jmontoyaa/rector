@@ -46,12 +46,12 @@ final class TraitTypeResolver implements NodeTypeResolverInterface
             return new MixedType();
         }
 
-        $traitReflection = $this->reflectionProvider->getClass($traitName);
+        $classReflection = $this->reflectionProvider->getClass($traitName);
 
         $types = [];
         $types[] = new ObjectType($traitName);
 
-        foreach ($traitReflection->getTraits() as $usedTraitReflection) {
+        foreach ($classReflection->getTraits() as $usedTraitReflection) {
             $types[] = new ObjectType($usedTraitReflection->getName());
         }
 

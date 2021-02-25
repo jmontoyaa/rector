@@ -62,9 +62,10 @@ final class PropertyUsageAnalyzer
         $propertyName = $this->nodeNameResolver->getName($property);
 
         $childrenClassReflections = $this->familyRelationsAnalyzer->getChildrenOfClass($className);
+
         foreach ($childrenClassReflections as $childClassReflection) {
             $childClass = $this->nodeRepository->findClass($childClassReflection->getName());
-            if ($childClass === null) {
+            if (! $childClass instanceof Class_) {
                 continue;
             }
 

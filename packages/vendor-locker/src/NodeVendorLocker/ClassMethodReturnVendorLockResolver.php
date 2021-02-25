@@ -7,14 +7,17 @@ namespace Rector\VendorLocker\NodeVendorLocker;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Type\MixedType;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 
 final class ClassMethodReturnVendorLockResolver extends AbstractNodeVendorLockResolver
 {
     public function isVendorLocked(ClassMethod $classMethod): bool
     {
-        /** @var Scope $scope */
         $scope = $classMethod->getAttribute(AttributeKey::SCOPE);
+        if (! $scope instanceof Scope) {
+            return false;
+        }
 
         $classReflection = $scope->getClassReflection();
         if (! $classReflection instanceof ClassReflection) {
@@ -27,9 +30,8 @@ final class ClassMethodReturnVendorLockResolver extends AbstractNodeVendorLockRe
 
         /** @var string $methodName */
         $methodName = $this->nodeNameResolver->getName($classMethod);
-
-        if ($classReflection->getParentClass() instanceof ClassReflection) {
-            return $this->isVendorLockedByParentClass($classReflection, $methodName);
+        if ($this->isVendorLockedByParentClass($classReflection, $methodName)) {
+            return true;
         }
 
         if ($classReflection->isTrait()) {
@@ -41,20 +43,17 @@ final class ClassMethodReturnVendorLockResolver extends AbstractNodeVendorLockRe
 
     private function isVendorLockedByParentClass(ClassReflection $classReflection, string $methodName): bool
     {
-        $parentClass = $this->nodeRepository->findClass($classReflection->getName());
-        if ($parentClass !== null) {
-            $parentClassMethod = $parentClass->getMethod($methodName);
-            // validate type is conflicting
-            // parent class method in local scope → it's ok
-            if ($parentClassMethod !== null) {
-                return $parentClassMethod->returnType !== null;
+        foreach ($classReflection->getParents() as $parentClassReflections) {
+            if (! $parentClassReflections->hasMethod($methodName)) {
+                continue;
             }
 
-            // if not, look for it's parent parent
+            $parentClassMethodReflection = $parentClassReflections->getNativeMethod($methodName);
+            $parametersAcceptor = $parentClassMethodReflection->getVariants()[0];
+
+            return ! $parametersAcceptor->getReturnType() instanceof MixedType;
         }
 
-        // validate type is conflicting
-        // parent class method in external scope → it's not ok
-        return $classReflection->hasMethod($methodName);
+        return false;
     }
 }

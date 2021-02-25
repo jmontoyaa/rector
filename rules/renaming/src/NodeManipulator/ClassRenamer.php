@@ -375,11 +375,7 @@ final class ClassRenamer
         }
 
         // is interface to class?
-        if (in_array($name, $class->implements, true) && $classReflection->isClass()) {
-            return false;
-        }
-
-        return true;
+        return ! (in_array($name, $class->implements, true) && $classReflection->isClass());
     }
 
     private function isValidUseImportChange(string $newName, UseUse $useUse): bool

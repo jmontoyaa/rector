@@ -30,9 +30,6 @@ use Rector\Core\Util\StaticRectorStrings;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 
-/**
- * @todo decouple to collector?
- */
 final class VariableNaming
 {
     /**
@@ -244,16 +241,11 @@ final class VariableNaming
         return $varName . ucfirst($propertyName);
     }
 
-    private function resolveFromMethodCall(?Node $node): ?string
+    /**
+     * @param MethodCall|NullsafeMethodCall|StaticCall $node
+     */
+    private function resolveFromMethodCall(Node $node): ?string
     {
-        if (! $node instanceof Node) {
-            return null;
-        }
-
-        if (! property_exists($node, 'name')) {
-            return null;
-        }
-
         if ($node->name instanceof MethodCall) {
             return $this->resolveFromMethodCall($node->name);
         }

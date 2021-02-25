@@ -8,7 +8,6 @@ use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name\FullyQualified;
-use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Core\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Core\Rector\AbstractRector;
@@ -145,7 +144,7 @@ CODE_SAMPLE
         return $constructorMethodReflection->getNumberOfRequiredParameters() <= count($new->args);
     }
 
-    private function getNewNodeClassConstructorMethodReflection(New_ $new): ?MethodReflection
+    private function getNewNodeClassConstructorMethodReflection(New_ $new): ?ReflectionMethod
     {
         $className = $this->getName($new->class);
         if ($className === null) {
@@ -157,7 +156,8 @@ CODE_SAMPLE
         }
 
         $classReflection = $this->reflectionProvider->getClass($className);
-        return $classReflection->getConstructor();
+        $nativeClassReflection = $classReflection->getNativeReflection();
+        return $nativeClassReflection->getConstructor();
     }
 
     private function resolveClassToInstantiateByParameterReflection(ReflectionParameter $reflectionParameter): ?string

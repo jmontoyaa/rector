@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Rector\Core\Rector;
 
-use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;

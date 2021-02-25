@@ -32,6 +32,11 @@ final class DynamicSourceLocator
         $this->fileInfos[] = $fileInfo;
     }
 
+    public function setFileInfo(SmartFileInfo $fileInfo): void
+    {
+        $this->fileInfos = [$fileInfo];
+    }
+
     public function provide(): SourceLocator
     {
         $sourceLocators = [];

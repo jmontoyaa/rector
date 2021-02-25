@@ -33,11 +33,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                 new MethodCallRename('*Presenter', 'run', '__invoke'),
                 new MethodCallRename('*SkipPrivateToInvoke', 'run', '__invoke'),
                 new MethodCallRename('*SkipProtectedToInvoke', 'run', '__invoke'),
-                new MethodCallRename(
-                    \Rector\Renaming\Tests\Rector\MethodCall\RenameMethodRector\Fixture\SkipSelfMethodRename::class,
-                    'preventPHPStormRefactoring',
-                    'gone'
-                ),
                 // with array key
                 new MethodCallRenameWithArrayKey(Html::class, 'addToArray', 'addToHtmlArray', 'hey'),
             ]),

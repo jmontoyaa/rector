@@ -7,7 +7,7 @@ namespace Rector\NetteKdyby\DataProvider;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Reflection\ClassReflection;
 use Rector\NodeCollector\NodeCollector\NodeRepository;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
@@ -38,19 +38,10 @@ final class OnPropertyMagicCallProvider
      */
     private $nodeNameResolver;
 
-    /**
-     * @var ReflectionProvider
-     */
-    private $reflectionProvider;
-
-    public function __construct(
-        NodeNameResolver $nodeNameResolver,
-        NodeRepository $nodeRepository,
-        ReflectionProvider $reflectionProvider
-    ) {
+    public function __construct(NodeNameResolver $nodeNameResolver, NodeRepository $nodeRepository)
+    {
         $this->nodeRepository = $nodeRepository;
         $this->nodeNameResolver = $nodeNameResolver;
-        $this->reflectionProvider = $reflectionProvider;
     }
 
     /**
@@ -64,6 +55,10 @@ final class OnPropertyMagicCallProvider
 
         foreach ($this->nodeRepository->getMethodsCalls() as $methodCall) {
             $scope = $methodCall->getAttribute(AttributeKey::SCOPE);
+            if (! $scope instanceof Scope) {
+                continue;
+            }
+
             if (! $this->isLocalOnPropertyCall($methodCall, $scope)) {
                 continue;
             }
@@ -102,7 +97,7 @@ final class OnPropertyMagicCallProvider
         }
 
         $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return false;
         }
 

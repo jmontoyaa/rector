@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rector\NodeCollector;
 
 use Nette\Utils\Strings;
+use PHPStan\PhpDoc\ResolvedPhpDocBlock;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeCollector\NodeCollector\NodeRepository;
@@ -56,13 +57,13 @@ final class StaticAnalyzer
 
     private function hasStaticAnnotation(string $methodName, ClassReflection $classReflection): bool
     {
-        $resolvedPhpDoc = $classReflection->getResolvedPhpDoc();
-        if ($resolvedPhpDoc === null) {
+        $resolvedPhpDocBlock = $classReflection->getResolvedPhpDoc();
+        if (! $resolvedPhpDocBlock instanceof ResolvedPhpDocBlock) {
             return false;
         }
 
         return (bool) Strings::match(
-            $resolvedPhpDoc->getPhpDocString(),
+            $resolvedPhpDocBlock->getPhpDocString(),
             '#@method\s*static\s*(.*?)\b' . $methodName . '\b#'
         );
     }

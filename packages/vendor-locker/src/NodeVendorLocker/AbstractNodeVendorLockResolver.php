@@ -5,18 +5,11 @@ declare(strict_types=1);
 namespace Rector\VendorLocker\NodeVendorLocker;
 
 use PHPStan\Reflection\ClassReflection;
-use Rector\Core\NodeManipulator\ClassManipulator;
-use Rector\FamilyTree\Reflection\FamilyRelationsAnalyzer;
 use Rector\NodeCollector\NodeCollector\NodeRepository;
 use Rector\NodeNameResolver\NodeNameResolver;
 
 abstract class AbstractNodeVendorLockResolver
 {
-    /**
-     * @var ClassManipulator
-     */
-    protected $classManipulator;
-
     /**
      * @var NodeNameResolver
      */
@@ -28,23 +21,14 @@ abstract class AbstractNodeVendorLockResolver
     protected $nodeRepository;
 
     /**
-     * @var FamilyRelationsAnalyzer
-     */
-    private $familyRelationsAnalyzer;
-
-    /**
      * @required
      */
     public function autowireAbstractNodeVendorLockResolver(
         NodeRepository $nodeRepository,
-        ClassManipulator $classManipulator,
-        NodeNameResolver $nodeNameResolver,
-        FamilyRelationsAnalyzer $familyRelationsAnalyzer
+        NodeNameResolver $nodeNameResolver
     ): void {
         $this->nodeRepository = $nodeRepository;
-        $this->classManipulator = $classManipulator;
         $this->nodeNameResolver = $nodeNameResolver;
-        $this->familyRelationsAnalyzer = $familyRelationsAnalyzer;
     }
 
     protected function hasParentClassChildrenClassesOrImplementsInterface(ClassReflection $classReflection): bool
@@ -58,14 +42,14 @@ abstract class AbstractNodeVendorLockResolver
                 return true;
             }
 
-            return $classReflection->getAncestors() !== [];
+            return $classReflection->getAncestors() !== [$classReflection];
         }
 
-        if ($classReflection->isInterface() && $classReflection->getInterfaces()) {
-            return true;
+        if (! $classReflection->isInterface()) {
+            return false;
         }
 
-        return false;
+        return $classReflection->getInterfaces() !== [];
     }
 
     protected function isMethodVendorLockedByInterface(ClassReflection $classReflection, string $methodName): bool

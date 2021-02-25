@@ -22,7 +22,6 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\Core\PhpParser\Node\BetterNodeFinder;
-use Rector\NodeCollector\NodeCollector\NodeRepository;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Contract\NodeTypeResolverInterface;
 use Rector\NodeTypeResolver\Node\AttributeKey;
@@ -71,19 +70,13 @@ final class PropertyFetchTypeResolver implements NodeTypeResolverInterface
      */
     private $parser;
 
-    /**
-     * @var NodeRepository
-     */
-    private $nodeRepository;
-
     public function __construct(
         NodeNameResolver $nodeNameResolver,
         StaticTypeMapper $staticTypeMapper,
         TraitNodeScopeCollector $traitNodeScopeCollector,
         SmartFileSystem $smartFileSystem,
         BetterNodeFinder $betterNodeFinder,
-        Parser $parser,
-        NodeRepository $nodeRepository
+        Parser $parser
     ) {
         $this->nodeNameResolver = $nodeNameResolver;
         $this->staticTypeMapper = $staticTypeMapper;
@@ -91,7 +84,6 @@ final class PropertyFetchTypeResolver implements NodeTypeResolverInterface
         $this->betterNodeFinder = $betterNodeFinder;
         $this->smartFileSystem = $smartFileSystem;
         $this->parser = $parser;
-        $this->nodeRepository = $nodeRepository;
     }
 
     /**
@@ -157,7 +149,7 @@ final class PropertyFetchTypeResolver implements NodeTypeResolverInterface
         }
 
         $classReflection = $varObjectType->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return new MixedType();
         }
 

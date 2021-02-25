@@ -42,7 +42,7 @@ final class ClassMethodVisibilityGuard
         ClassMethod $classMethod,
         ClassReflection $classReflection
     ): bool {
-        $parentTraitReflections = $this->getParentTraits($classReflection);
+        $parentTraitReflections = $this->getLocalAndParentTraitReflections($classReflection);
 
         $methodName = $this->nodeNameResolver->getName($classMethod);
 
@@ -58,13 +58,13 @@ final class ClassMethodVisibilityGuard
     /**
      * @return ClassReflection[]
      */
-    public function getParentTraits(ClassReflection $classReflection): array
+    private function getLocalAndParentTraitReflections(ClassReflection $classReflection): array
     {
-        $traitReflections = [];
+        $traitReflections = $classReflection->getTraits();
 
         foreach ($classReflection->getParents() as $parentClassReflection) {
-            foreach ($parentClassReflection->getTraits() as $traitReflection) {
-                $traitReflections[] = $traitReflection;
+            foreach ($parentClassReflection->getTraits() as $parentTraitReflection) {
+                $traitReflections[] = $parentTraitReflection;
             }
         }
 

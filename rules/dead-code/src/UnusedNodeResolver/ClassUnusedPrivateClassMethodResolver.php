@@ -111,8 +111,8 @@ final class ClassUnusedPrivateClassMethodResolver
         $interfaceMethods = [];
         foreach ($classReflection->getInterfaces() as $interfaceClassReflection) {
             $nativeInterfaceClassReflection = $interfaceClassReflection->getNativeReflection();
-            foreach ($nativeInterfaceClassReflection->getMethods() as $methodReflection) {
-                $interfaceMethods[] = $methodReflection->getName();
+            foreach ($nativeInterfaceClassReflection->getMethods() as $reflectionMethod) {
+                $interfaceMethods[] = $reflectionMethod->getName();
             }
         }
 

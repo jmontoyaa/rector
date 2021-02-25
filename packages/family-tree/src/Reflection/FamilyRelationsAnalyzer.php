@@ -7,6 +7,9 @@ namespace Rector\FamilyTree\Reflection;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 
+/**
+ * @deprecated Use ReflectionProvider instead
+ */
 final class FamilyRelationsAnalyzer
 {
     /**
@@ -25,23 +28,16 @@ final class FamilyRelationsAnalyzer
     public function getChildrenOfClass(string $className): array
     {
         $classReflection = $this->reflectionProvider->getClass($className);
-        return $classReflection->getAncestors();
-    }
 
-    public function isParentClass(string $class): bool
-    {
-        foreach (get_declared_classes() as $declaredClass) {
-            if ($declaredClass === $class) {
+        $childrenClassReflections = [];
+        foreach ($classReflection->getAncestors() as $ancestorClassReflection) {
+            if ($ancestorClassReflection === $classReflection) {
                 continue;
             }
 
-            if (! is_a($declaredClass, $class, true)) {
-                continue;
-            }
-
-            return true;
+            $childrenClassReflections[] = $ancestorClassReflection;
         }
 
-        return false;
+        return $childrenClassReflections;
     }
 }

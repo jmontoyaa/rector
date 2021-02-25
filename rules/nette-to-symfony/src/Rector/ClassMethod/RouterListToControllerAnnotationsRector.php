@@ -13,6 +13,7 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\Type;
 use PHPStan\Type\TypeWithClassName;
 use Rector\BetterPhpDocParser\ValueObject\PhpDocNode\Symfony\SymfonyRouteTagValueNode;
 use Rector\BetterPhpDocParser\ValueObjectFactory\PhpDocNode\Symfony\SymfonyRouteTagValueNodeFactory;
@@ -324,7 +325,7 @@ CODE_SAMPLE
 
         $reflectionMethod = $classReflection->getNativeMethod($methodName);
 
-        /** @var \PHPStan\Type\Type $returnType */
+        /** @var Type $returnType */
         $returnType = $this->privatesCaller->callPrivateMethod($reflectionMethod, 'getReturnType', []);
 
         if ($returnType instanceof TypeWithClassName) {

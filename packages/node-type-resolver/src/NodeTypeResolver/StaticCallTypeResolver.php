@@ -66,7 +66,7 @@ final class StaticCallTypeResolver implements NodeTypeResolverInterface
         }
 
         $classReflection = $classType->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return $classType;
         }
 

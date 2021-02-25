@@ -8,7 +8,6 @@ use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\ReflectionProvider;
 use Rector\Core\Rector\AbstractRector;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Privatization\VisibilityGuard\ClassMethodVisibilityGuard;
@@ -25,17 +24,9 @@ final class PrivatizeFinalClassMethodRector extends AbstractRector
      */
     private $classMethodVisibilityGuard;
 
-    /**
-     * @var ReflectionProvider
-     */
-    private $reflectionProvider;
-
-    public function __construct(
-        ClassMethodVisibilityGuard $classMethodVisibilityGuard,
-        ReflectionProvider $reflectionProvider
-    ) {
+    public function __construct(ClassMethodVisibilityGuard $classMethodVisibilityGuard)
+    {
         $this->classMethodVisibilityGuard = $classMethodVisibilityGuard;
-        $this->reflectionProvider = $reflectionProvider;
     }
 
     public function getRuleDefinition(): RuleDefinition

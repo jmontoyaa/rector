@@ -98,7 +98,7 @@ final class UnionTypeCommonTypeNarrower
     }
 
     /**
-     * @return class-string[]
+     * @return string[]
      */
     private function narrowToSharedTypes(UnionType $unionType): array
     {
@@ -127,7 +127,7 @@ final class UnionTypeCommonTypeNarrower
     private function resolveClassParentClassesAndInterfaces(ObjectType $objectType): array
     {
         $classReflection = $objectType->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return [];
         }
 
@@ -141,7 +141,7 @@ final class UnionTypeCommonTypeNarrower
         );
 
         return array_filter($parentClassAndInterfaceReflections, function (ClassReflection $classReflection): bool {
-            return ! $classReflection->isInternal();
+            return ! $classReflection->isBuiltin();
         });
     }
 

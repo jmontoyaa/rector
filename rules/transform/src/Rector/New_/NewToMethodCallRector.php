@@ -109,6 +109,7 @@ CODE_SAMPLE
 
             if ($propertyName === null) {
                 $propertyName = $this->classNaming->getShortName($serviceType);
+                $propertyName = lcfirst($propertyName);
 
                 $factoryObjectType = new ObjectType($serviceType);
 

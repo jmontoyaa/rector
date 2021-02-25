@@ -9,6 +9,7 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\Native\NativeMethodReflection;
 use PHPStan\Reflection\ParameterReflection;
@@ -93,16 +94,6 @@ final class MethodReflectionProvider
         return $classReflection->getNativeMethod($methodName);
     }
 
-    public function provideByClassAndMethodName(string $class, string $method, Scope $scope): ?MethodReflection
-    {
-        $classReflection = $this->reflectionProvider->getClass($class);
-        if (! $classReflection->hasMethod($method)) {
-            return null;
-        }
-
-        return $classReflection->getMethod($method, $scope);
-    }
-
     /**
      * @return Type[]
      */
@@ -159,7 +150,12 @@ final class MethodReflectionProvider
             return null;
         }
 
-        return $this->provideByClassAndMethodName($class, $method, $scope);
+        $classReflection = $scope->getClassReflection();
+        if (! $classReflection instanceof ClassReflection) {
+            return null;
+        }
+
+        return $classReflection->getMethod($method, $scope);
     }
 
     /**
@@ -189,6 +185,7 @@ final class MethodReflectionProvider
             }
 
             $classReflection = $this->reflectionProvider->getClass($class);
+
             if (! $classReflection->hasMethod(MethodName::CONSTRUCT)) {
                 continue;
             }
@@ -197,7 +194,7 @@ final class MethodReflectionProvider
             $methodReflection = $nativeClassReflection->getMethod(MethodName::CONSTRUCT);
 
             foreach ($methodReflection->getParameters() as $reflectionParameter) {
-                $parameterNames[] = $reflectionParameter->name;
+                $parameterNames[] = $reflectionParameter->getName();
             }
         }
 
@@ -219,7 +216,9 @@ final class MethodReflectionProvider
         }
 
         foreach ($classes as $class) {
-            $methodReflection = $this->provideByClassAndMethodName($class, $methodName, $scope);
+            $classReflection = $this->reflectionProvider->getClass($class);
+            $methodReflection = $classReflection->getMethod($methodName, $scope);
+
             if ($methodReflection instanceof MethodReflection) {
                 return $methodReflection;
             }

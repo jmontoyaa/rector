@@ -160,8 +160,6 @@ parameters:
             message: '#Class "Rector\\RectorGenerator\\Rector\\Closure\\AddNewServiceToSymfonyPhpConfigRector" is missing @see annotation with test case class reference#'
             path: 'packages/rector-generator/src/Rector/Closure/AddNewServiceToSymfonyPhpConfigRector.php'
 
-        - '#Class Rector\\Renaming\\Tests\\Rector\\MethodCall\\RenameMethodRector\\Fixture\\SkipSelfMethodRename not found#'
-
         - '#Parameter \#1 \$variable of class Rector\\Php70\\ValueObject\\VariableAssignPair constructor expects PhpParser\\Node\\Expr\\ArrayDimFetch\|PhpParser\\Node\\Expr\\PropertyFetch\|PhpParser\\Node\\Expr\\StaticPropertyFetch\|PhpParser\\Node\\Expr\\Variable, PhpParser\\Node\\Expr given#'
 
         # is nested expr
@@ -321,8 +319,6 @@ parameters:
 
         ###################################################
 
-        - '#should return ReflectionClassConstant\|null but returns ReflectionClassConstant\|false#'
-
         - '#Method "evaluateBinaryToVersionCompareCondition\(\)" returns bool type, so the name should start with is/has/was#'
 
         # soo many false positive naming - fix later with Recto rule
@@ -405,12 +401,6 @@ parameters:
             paths:
                 - rules/naming/src/Guard/PropertyConflictingNameGuard/AbstractPropertyConflictingNameGuard.php
                 - rules/naming/src/PropertyRenamer/AbstractPropertyRenamer.php
-
-        -
-            message: '#".*" regex need to use string named capture group instead of numeric#'
-            paths:
-                - packages/better-php-doc-parser/src/PhpDocParser/BetterPhpDocParser.php #268
-                - rules/php70/src/EregToPcreTransformer.php #277
 
         -
             message: '#There should be no empty class#'
@@ -514,7 +504,6 @@ parameters:
         # known values
         - '#Method Rector\\Testing\\Finder\\RectorsFinder\:\:findClassesInDirectoriesByName\(\) should return array<class\-string\> but returns array<int, \(int\|string\)\>#'
         - '#Property PhpParser\\Node\\Param\:\:\$type \(PhpParser\\Node\\Identifier\|PhpParser\\Node\\Name\|PhpParser\\Node\\NullableType\|PhpParser\\Node\\UnionType\|null\) does not accept PhpParser\\Node#'
-        - '#Parameter \#1 \$interfaces of method Rector\\PHPStanStaticTypeMapper\\TypeAnalyzer\\UnionTypeCommonTypeNarrower\:\:filterOutNativeInterfaces\(\) expects array<class\-string\>, array<string, string\> given#'
         - '#Content of method "getFunctionLikePhpDocInfo\(\)" is duplicated with method "getFunctionLikePhpDocInfo\(\)" in "Rector\\TypeDeclaration\\TypeInferer\\ParamTypeInferer\\PHPUnitDataProviderParamTypeInferer" class\. Use unique content or abstract service instead#'
 
         -
@@ -541,10 +530,7 @@ parameters:
              paths:
                  # on PhpParser Nodes
                  - src/NodeManipulator/ClassMethodAssignManipulator.php
-                 - rules/nette-kdyby/src/Naming/VariableNaming.php
                  - rules/php80/src/Rector/If_/NullsafeOperatorRector.php
-                 - rules/early-return/src/Rector/If_/ChangeAndIfToEarlyReturnRector.php
-                 - rules/early-return/src/Rector/Return_/PreparedValueToEarlyReturnRector.php
                  - packages/node-type-resolver/src/NodeVisitor/FunctionMethodAndClassNodeVisitor.php
                  - packages/node-name-resolver/src/NodeNameResolver.php
                  - packages/node-type-resolver/src/PHPStan/Scope/PHPStanNodeScopeResolver.php
@@ -552,7 +538,6 @@ parameters:
                  - packages/node-type-resolver/src/NodeVisitor/StatementNodeVisitor.php
                  - packages/better-php-doc-parser/src/Printer/PhpDocInfoPrinter.php
                  - packages/better-php-doc-parser/src/Printer/MultilineSpaceFormatPreserver.php
-                 - packages/better-php-doc-parser/src/AnnotationReader/AnnotationReaderFactory.php
 
         -
             message: '#Function "class_implements\(\)" cannot be used/left in the code#'
@@ -579,4 +564,6 @@ parameters:
         # known types
         - '#Call to an undefined method PHPStan\\Type\\ConstantType\:\:getValue\(\)#'
         - '#Method Rector\\BetterPhpDocParser\\AnnotationReader\\NodeAnnotationReader\:\:getNativePropertyReflection\(\) should return ReflectionProperty\|null but return statement is missing#'
-        - '#Method Rector\\PHPStanStaticTypeMapper\\TypeAnalyzer\\UnionTypeCommonTypeNarrower\:\:narrowToSharedTypes\(\) should return array<class\-string\> but returns array<string\>#'
+        - '#Parameter \#1 \$node of method Rector\\NetteKdyby\\Naming\\VariableNaming\:\:resolveFromMethodCall\(\) expects PhpParser\\Node\\Expr\\MethodCall\|PhpParser\\Node\\Expr\\NullsafeMethodCall\|PhpParser\\Node\\Expr\\StaticCall, PhpParser\\Node given#'
+        - '#Parameter \#1 \$stmts of method Rector\\EarlyReturn\\Rector\\Return_\\PreparedValueToEarlyReturnRector\:\:collectIfs\(\) expects array<PhpParser\\Node\\Stmt\\If_\>, array<PhpParser\\Node\\Stmt\> given#'
+        - '#Access to an undefined property PhpParser\\Node\\FunctionLike\|PhpParser\\Node\\Stmt\\If_\:\:\$stmts#'

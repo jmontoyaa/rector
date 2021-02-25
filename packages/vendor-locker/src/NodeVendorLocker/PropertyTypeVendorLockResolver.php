@@ -64,6 +64,10 @@ final class PropertyTypeVendorLockResolver extends AbstractNodeVendorLockResolve
         }
 
         foreach ($classReflection->getAncestors() as $childClassReflection) {
+            if ($childClassReflection === $classReflection) {
+                continue;
+            }
+
             if (! $childClassReflection->hasProperty($propertyName)) {
                 continue;
             }

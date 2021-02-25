@@ -103,6 +103,7 @@ CODE_SAMPLE
         if (! $arrayCallable instanceof ArrayCallable) {
             return null;
         }
+
         if ($this->isAssignedToNetteMagicOnProperty($node)) {
             return null;
         }
