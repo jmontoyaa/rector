@@ -6,6 +6,7 @@ namespace Rector\EarlyReturn\Rector\If_;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\BinaryOp;
 use PhpParser\Node\Expr\BinaryOp\BooleanAnd;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Continue_;
@@ -186,7 +187,7 @@ CODE_SAMPLE
     private function getBooleanAndConditions(BooleanAnd $booleanAnd): array
     {
         $ifs = [];
-        while (property_exists($booleanAnd, 'left')) {
+        while ($booleanAnd instanceof BinaryOp) {
             $ifs[] = $booleanAnd->right;
             $booleanAnd = $booleanAnd->left;
 
