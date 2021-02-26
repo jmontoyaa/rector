@@ -11,9 +11,9 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Stmt\ClassLike;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\ObjectType;
 use Rector\Core\Rector\AbstractRector;
-use Rector\FamilyTree\Reflection\FamilyRelationsAnalyzer;
 use Rector\Naming\Guard\BreakingVariableRenameGuard;
 use Rector\Naming\Matcher\VariableAndCallAssignMatcher;
 use Rector\Naming\Naming\ExpectedNameResolver;
@@ -47,11 +47,6 @@ final class RenameVariableToMatchMethodCallReturnTypeRector extends AbstractRect
     private $breakingVariableRenameGuard;
 
     /**
-     * @var FamilyRelationsAnalyzer
-     */
-    private $familyRelationsAnalyzer;
-
-    /**
      * @var VariableAndCallAssignMatcher
      */
     private $variableAndCallAssignMatcher;
@@ -74,7 +69,6 @@ final class RenameVariableToMatchMethodCallReturnTypeRector extends AbstractRect
     public function __construct(
         BreakingVariableRenameGuard $breakingVariableRenameGuard,
         ExpectedNameResolver $expectedNameResolver,
-        FamilyRelationsAnalyzer $familyRelationsAnalyzer,
         NamingConventionAnalyzer $namingConventionAnalyzer,
         VarTagValueNodeRenamer $varTagValueNodeRenamer,
         VariableAndCallAssignMatcher $variableAndCallAssignMatcher,
@@ -84,7 +78,6 @@ final class RenameVariableToMatchMethodCallReturnTypeRector extends AbstractRect
         $this->expectedNameResolver = $expectedNameResolver;
         $this->variableRenamer = $variableRenamer;
         $this->breakingVariableRenameGuard = $breakingVariableRenameGuard;
-        $this->familyRelationsAnalyzer = $familyRelationsAnalyzer;
         $this->variableAndCallAssignMatcher = $variableAndCallAssignMatcher;
         $this->namingConventionAnalyzer = $namingConventionAnalyzer;
         $this->varTagValueNodeRenamer = $varTagValueNodeRenamer;
@@ -263,7 +256,7 @@ CODE_SAMPLE
         }
 
         $classReflection = $callStaticType->getClassReflection();
-        if ($classReflection === null) {
+        if (! $classReflection instanceof ClassReflection) {
             return false;
         }
 

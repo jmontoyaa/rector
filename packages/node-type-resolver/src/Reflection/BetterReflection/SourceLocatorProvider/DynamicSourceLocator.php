@@ -46,4 +46,12 @@ final class DynamicSourceLocator
 
         return new AggregateSourceLocator($sourceLocators);
     }
+
+    /**
+     * @param SmartFileInfo[] $fileInfos
+     */
+    public function addFileInfos(array $fileInfos): void
+    {
+        $this->fileInfos = array_merge($this->fileInfos, $fileInfos);
+    }
 }
